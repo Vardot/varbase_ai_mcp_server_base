@@ -1,10 +1,9 @@
 [![Varbase](https://raw.githubusercontent.com/Vardot/varbase/11.0.x/images/varbase-logo.png)](https://www.drupal.org/project/varbase)
 
 # Varbase AI MCP Server Base
-[![CI](https://github.com/Vardot/varbase_ai_mcp_server_base/actions/workflows/ci.yml/badge.svg?branch=1.0.x)](https://github.com/Vardot/varbase_ai_mcp_server_base/actions/workflows/ci.yml)
-[![Varbase AI MCP Server Base](https://img.shields.io/badge/Varbase%20AI%20MCP%20Server%20Base-1.0.5-0d6efc?labelColor=001d38&style=flat-square)](https://github.com/Vardot/varbase_ai_mcp_server_base/releases/tag/1.0.5)
+[![Varbase AI MCP Server Base](https://img.shields.io/badge/Varbase%20AI%20MCP%20Server%20Base-1.0.x--dev-0d6efc?labelColor=001d38&style=flat-square)](https://www.drupal.org/project/varbase_ai_mcp_server_base)
 
-A private, **opt-in** Drupal recipe that lets external assistants (Claude.ai, Claude Desktop, other MCP clients)
+An **opt-in** Drupal recipe that lets external assistants (Claude.ai, Claude Desktop, other MCP clients)
 read a Varbase 11 site and **draft** blog posts and pages over the [Model Context Protocol](https://modelcontextprotocol.io):
 an MCP server on `/mcp`, OAuth 2.1, eight read tools and four draft-writing tools. Nothing it writes is ever published:
 publishing stays a human action in Drupal.
@@ -62,7 +61,7 @@ those. Sites that used project-specific scopes map like this:
 | a content write scope | `mcp:write`, drafts only |
 | Canvas read or build scopes | not covered: no Canvas tools are exposed |
 
-Search over the vector index (`content_vector`, from [Varbase AI Search Base](https://github.com/Vardot/varbase_ai_search_base))
+Search over the vector index (`content_vector`, from [Varbase AI Search Base](https://www.drupal.org/project/varbase_ai_search_base))
 and a site status tool are not part of this version.
 
 ### Why OAuth 2.1
@@ -86,16 +85,13 @@ It works on any Drupal 11.4 site; CI builds Varbase Starter.
 ## Install and apply
 
 ```bash
-ddev auth ssh
-ddev composer config repositories.varbase_ai_mcp_server_base vcs git@github.com:Vardot/varbase_ai_mcp_server_base.git
-ddev composer config --json extra.drupal-recipe-unpack.ignore '["vardot/varbase_ai_mcp_server_base"]'
-ddev composer require vardot/varbase_ai_mcp_server_base:~1.0.5 --prefer-source
+ddev composer config --json extra.drupal-recipe-unpack.ignore '["drupal/varbase_ai_mcp_server_base"]'
+ddev composer require drupal/varbase_ai_mcp_server_base:1.0.x-dev
 # Rebuild first: the module list is cached from before the require, and the apply
 # stops with "is not a known module" without it.
 ddev drush cr
 ddev drush recipe ../recipes/varbase_ai_mcp_server_base
 ddev drush cr
-ddev drush php:eval "$(sed -n "/<<'PHP'/,/^ *PHP\$/p" recipes/varbase_ai_mcp_server_base/.github/workflows/ci.yml | sed '1d;$d')"
 ```
 
 When the project already ignores other packages, add to the unpack list rather
@@ -137,21 +133,13 @@ tool. Never enable an `mcp:publish` grant.
 
 ## Automated testing
 
-`.github/workflows/ci.yml` runs on every pull request, every push to `1.0.x` and every tag:
+GitLab CI on [git.drupalcode.org](https://git.drupalcode.org/project/varbase_ai_mcp_server_base) (`.gitlab-ci.yml`) runs on every merge
+request and every push to `1.0.x`, like the other Varbase AI recipes: `composer validate` and a lint of every YAML
+file.
 
-1. **Lint**: `composer validate`, every YAML file, and PHP syntax.
-2. **Apply on a Varbase 11 site**: `drupal/varbase_project` `11.0.x-dev` installed from Varbase Starter on MariaDB
-   11.8, with this checkout required through a path repository. The recipe is applied **twice**, then
-   the no-key recipe check runs. The site is served and `curl` checks that the discovery documents answer 200 and that an
-   unauthenticated `POST /mcp` answers 401 with a `WWW-Authenticate` challenge.
-3. **Functional tests**: Playwright + Cucumber through `@vardot/varbase-e2e` in Chromium: the MCP tools page lists
-   the read and draft tools and no delete or publish tool, the scopes page loads, and a content
-   editor cannot see the tool configuration.
-
-The CI step "Check the recipe without an AI key" (an inline `drush php:eval` in `.github/workflows/ci.yml`) needs no key and no client. It checks the modules, the three scopes (`mcp:publish` with every grant
-disabled), that the role has **exactly** the read and draft permissions, that `create_new_draft` ends in `draft`, each
-of the twelve tools and its scope, that **no other tool and no delete or publish tool is enabled**, PKCE, and the
-server instructions. Keys and clients are INFO lines.
+The functional tests in `tests/features` (Playwright and Cucumber through
+[`@vardot/varbase-e2e`](https://www.npmjs.com/package/@vardot/varbase-e2e)) run against a site of your own:
+`yarn install`, then `LAUNCH_URL=https://your-site.ddev.site yarn test`.
 
 ## Checked
 
@@ -199,8 +187,8 @@ keys directory needs a writable mount).
 
 | Recipe | What it does |
 |---|---|
-| [Varbase AI Search Base](https://github.com/Vardot/varbase_ai_search_base) | A vector index of the site's content. |
-| [Varbase AI Content Review Base](https://github.com/Vardot/varbase_ai_content_review_base) | AI review of content against the site's style guide. |
+| [Varbase AI Search Base](https://www.drupal.org/project/varbase_ai_search_base) | A vector index of the site's content. |
+| [Varbase AI Content Review Base](https://www.drupal.org/project/varbase_ai_content_review_base) | AI review of content against the site's style guide. |
 | [`drupal/mcp`](https://www.drupal.org/project/mcp) `recipes/agent_ready` | The upstream read, write and publish setup this recipe trims to read and draft. |
 
 ## License

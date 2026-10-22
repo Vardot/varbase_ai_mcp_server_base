@@ -2,8 +2,10 @@
 
 Guidance for AI coding agents working on the Varbase AI MCP Server recipe.
 
-This is a **private** recipe on GitHub (`Vardot/varbase_ai_mcp_server_base`), not a drupal.org project. Issues, pull
-requests and CI all live on GitHub. Its default branch is `1.0.x`.
+This is a drupal.org project: [drupal.org/project/varbase_ai_mcp_server_base](https://www.drupal.org/project/varbase_ai_mcp_server_base).
+Issues live in its [issue queue](https://www.drupal.org/project/issues/varbase_ai_mcp_server_base) and merge requests on
+[git.drupalcode.org](https://git.drupalcode.org/project/varbase_ai_mcp_server_base). Its default branch is `1.0.x`; the
+GitHub repository is a mirror and takes no issues or pull requests.
 
 ## Before you start
 
@@ -13,8 +15,11 @@ requests and CI all live on GitHub. Its default branch is `1.0.x`.
 
 ## When you make a change
 
-- One issue and one pull request per change. The PR says `Closes #<issue>` and ends with the Checkpoints list from
-  `.github/pull_request_template.md`.
+- One drupal.org issue and one issue-fork merge request per change, titled `<type>: #<issue> Summary`. The MR
+  description ends with the Checkpoints list from `.gitlab/merge_request_templates/default.md`.
+- CI must be green before merging: `.gitlab-ci.yml` on git.drupalcode.org validates `composer.json` and lints
+  every YAML file.
+- No PHP in the repository at all: no `.php`, `.module`, `.install` or `.inc` file.
 - Add an entry under `## [Unreleased]` in `CHANGELOG.md`.
 - CI must be green before merging: it applies the recipe twice on a real Varbase 11 site, runs the no-key recipe check,
   checks the discovery documents and the 401 on `/mcp`, then runs the functional tests.
@@ -25,8 +30,6 @@ requests and CI all live on GitHub. Its default branch is `1.0.x`.
   The CI check fails on any tool or permission outside the allowed lists.
 - Never put signing keys, client secrets or tokens in config, `recipe.yml`, tests, CI or docs. They are runtime state.
 - Never apply `drupal/mcp`'s `agent_ready` recipe or call its setup from here: both add write and publish.
-- No PHP in the repository at all: no `.php`, `.module`, `.install` or `.inc` file. The no-key checks run inline in
-  `.github/workflows/ci.yml` (`drush php:eval`), and the lint job fails on any PHP file.
 - No client or place names anywhere in the repository.
 - Never bump the version or tag a release without explicit maintainer approval. Tags are three-segment (`1.0.0`)
   and are never moved once pushed.
