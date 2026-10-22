@@ -1,0 +1,43 @@
+{
+    "name": "drupal/varbase_ai_mcp_server_base",
+    "description": "Varbase AI MCP Server: an MCP server for external assistants (Claude.ai and similar) with OAuth 2.1 and a read-only starter tool set. Experimental. Opt-in: never applied by default.",
+    "type": "drupal-recipe",
+    "keywords": [
+        "recipe",
+        "Varbase recipes",
+        "Drupal recipes",
+        "Varbase AI",
+        "MCP",
+        "Model Context Protocol",
+        "OAuth 2.1",
+        "Tool API"
+    ],
+    "license": "GPL-2.0-or-later",
+    "homepage": "https://github.com/Vardot/varbase_ai_mcp_server_base",
+    "authors": [
+        {
+            "name": "Vardot",
+            "homepage": "https://www.vardot.com",
+            "role": "Maintainer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/Vardot/varbase_ai_mcp_server_base/issues",
+        "source": "https://github.com/Vardot/varbase_ai_mcp_server_base"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=8.3",
+        "drupal/consumers": "^1.24",
+        "drupal/core": "^11.4",
+        "drupal/mcp": "2.0.x-dev",
+        "drupal/mcp_server": "^2.0@beta",
+        "drupal/mcp_server_oauth": "^1.0@alpha",
+        "drupal/mcp_server_tool_bridge": "^1.0@beta",
+        "drupal/simple_oauth": "^6.1",
+        "drupal/tool": "^1.0@beta",
+        "drupal/tool_belt": "^1.0@alpha",
+        "e0ipso/simple_oauth_21": "^1.13"
+    }
+}

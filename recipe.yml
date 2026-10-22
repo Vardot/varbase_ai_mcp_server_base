@@ -1,0 +1,298 @@
+name: 'Varbase AI MCP Server Base'
+description: >-
+  Opt-in MCP server for external assistants (Claude.ai and similar MCP
+  clients) on a Varbase 11 site. Installs MCP Server 2.x with
+  OAuth 2.1 (Simple OAuth, Simple OAuth 2.1, discovery metadata, PKCE) and the
+  Tool Bridge, and exposes eight Tool Belt read tools behind mcp:read and four
+  draft-writing tools behind mcp:write, bounded by the mcp_agent role to
+  drafts of blog posts and pages. mcp:publish has every grant disabled: an
+  assistant drafts, a person publishes. Signing keys and OAuth clients are runtime state, created
+  after the apply (see README). No custom PHP or shell code. Experimental:
+  the MCP stack has no stable release.
+type: 'Varbase AI'
+install:
+  # Required by Tool API and the Tool Bridge to describe tool inputs.
+  - serialization
+  # OAuth clients (one consumer entity per client).
+  - consumers
+  # The OAuth 2 server: tokens, scopes, the consent screen.
+  - simple_oauth
+  # OAuth 2.1 compliance dashboard; drupal/mcp's status checks expect it.
+  - simple_oauth_21
+  # RFC 8414 / RFC 9728 discovery documents under /.well-known/, which MCP
+  # clients read to find the authorization and token endpoints.
+  - simple_oauth_server_metadata
+  # PKCE settings (S256 only, set below).
+  - simple_oauth_pkce
+  # RFC 7591 dynamic client registration. A hard dependency of
+  # mcp_server_oauth, and how Claude.ai and other interactive clients register
+  # themselves. Listed so the open /oauth/register endpoint is never a
+  # surprise (see README and docs/decisions/0001).
+  - simple_oauth_client_registration
+  # Tool API: the plugin type every exposed tool is.
+  - tool
+  # The MCP endpoint on /mcp (JSON-RPC over streamable HTTP).
+  - mcp_server
+  # Exposes Tool API tools on /mcp through mcp_tool_config entities.
+  - mcp_server_tool_bridge
+  # Scope metadata per tool and the OAuth challenge on /mcp.
+  - mcp_server_oauth
+  # Tool Belt: tool_belt_entity gives the three "explain the site" tools,
+  # tool_belt_content the "read content" and the four draft-writing tools.
+  # Their delete, create, update and schema tools are not exposed.
+  - tool_belt
+  - tool_belt_entity
+  - tool_belt_content
+  # The drupal/mcp umbrella module, installed for what it enforces, not for
+  # its setup: per-tool scope enforcement on every tools/call (mcp_server_oauth
+  # alone does not match Tool Bridge tool names), forced PKCE on dynamically
+  # registered public clients, the RFC 9728 /mcp resource metadata route, the
+  # publish guard and drush mcp:status. Its install-time setup does not run
+  # during a recipe apply, so it creates no client and exposes no tool.
+  - mcp
+config:
+  # Re-applying must be safe: create what is missing and leave the rest.
+  strict: false
+  actions:
+    mcp_server.settings:
+      simpleConfigUpdate:
+        server_instructions: 'Tools are OAuth-scoped and return only what the connected account may see. mcp:read explains and reads; mcp:write drafts. This connection never publishes: publishing is a human action in Drupal, so if the user asks to publish, say so. Learn the site first with entity_type_list and entity_bundle_field_definitions (entity_field_value_definitions explains value shapes), then read with entity_list, entity_load_by_id and entity_field_values. Entities travel between tools as handles. Every write is a draft: create with entity_stub -> field_set_value -> entity_save (new content is saved unpublished in the draft state); edit with entity_load_by_id -> entity_revision_add -> field_set_value (moderation_state draft) -> entity_save, which adds a new non-default revision and leaves the live version unchanged. Before entity_save, show the user what will change (a diff for an edit) and save only after they agree. Never set a published or archived state.'
+    # OAuth 2.1 allows only the S256 code challenge method.
+    simple_oauth_pkce.settings:
+      simpleConfigUpdate:
+        enforcement: mandatory
+        s256_enabled: true
+        plain_enabled: false
+    # OAuth scopes are bounded by this role: a token gets what both the person
+    # and the role allow. It can read published content, approve its own MCP
+    # client and draft blog posts and pages, nothing else: no delete, no
+    # publish or archive transition, no admin permission. Give it to the
+    # people who may connect.
+    user.role.mcp_agent:
+      createIfNotExists:
+        id: mcp_agent
+        label: 'MCP agent'
+        weight: 10
+      grantPermissions:
+        - 'access mcp server'
+        - 'access content'
+        # Approving one's own MCP client on the consent screen.
+        - 'grant simple_oauth codes'
+        # Body fields use content_format. Without this permission
+        # entity_field_values fails its output check on every node, so an
+        # assistant could read titles but no body; drafts write it too.
+        - 'use text format content_format'
+        # Drafts of Varbase blog posts and pages: create, edit one's own and
+        # see one's own unpublished drafts.
+        - 'create blog content'
+        - 'edit own blog content'
+        - 'create page content'
+        - 'edit own page content'
+        - 'view own unpublished content'
+        # The only Varbase editorial workflow transition that ends in draft.
+        # Never review, publish, archive or archived_published.
+        - 'use varbase_editorial_workflow transition create_new_draft'
+    # Reading. People connect with the authorization-code grant and
+    # refresh silently; headless agents use client credentials.
+    simple_oauth.oauth2_scope.mcp_read:
+      createIfNotExists:
+        id: mcp_read
+        name: 'mcp:read'
+        description: 'Read content and site structure through MCP.'
+        grant_types:
+          client_credentials:
+            status: true
+            description: 'Machine-to-machine agents'
+          authorization_code:
+            status: true
+            description: 'Read content and site structure on your behalf'
+          refresh_token:
+            status: true
+            description: 'Stay connected without approving again'
+        umbrella: false
+        granularity_id: role
+        granularity_configuration:
+          role: mcp_agent
+    # Drafting. Bounded by mcp_agent like mcp:read. setProperties turns the
+    # grants on for sites that applied 1.0.x, where the scope was created
+    # with every grant disabled.
+    simple_oauth.oauth2_scope.mcp_write:
+      createIfNotExists:
+        id: mcp_write
+        name: 'mcp:write'
+        description: 'Create and edit drafts through MCP. Never publishes.'
+        grant_types:
+          client_credentials:
+            status: true
+            description: 'Machine-to-machine agents'
+          authorization_code:
+            status: true
+            description: 'Create and edit drafts on your behalf'
+          refresh_token:
+            status: true
+            description: 'Stay connected without approving again'
+        umbrella: false
+        granularity_id: role
+        granularity_configuration:
+          role: mcp_agent
+      setProperties:
+        description: 'Create and edit drafts through MCP. Never publishes.'
+        grant_types.client_credentials.status: true
+        grant_types.authorization_code.status: true
+        grant_types.refresh_token.status: true
+        granularity_id: role
+        granularity_configuration:
+          role: mcp_agent
+    # Publishing stays a human action in Drupal. drupal/mcp's status check
+    # expects the scope to exist; every grant stays disabled, so no token can
+    # carry it, and setProperties keeps it that way on re-apply.
+    simple_oauth.oauth2_scope.mcp_publish:
+      createIfNotExists:
+        id: mcp_publish
+        name: 'mcp:publish'
+        description: 'Not available: publishing is a human action on this site.'
+        grant_types:
+          client_credentials:
+            status: false
+          authorization_code:
+            status: false
+          refresh_token:
+            status: false
+        umbrella: false
+        granularity_id: role
+        granularity_configuration:
+          role: mcp_agent
+      setProperties:
+        description: 'Not available: publishing is a human action on this site.'
+        grant_types.client_credentials.status: false
+        grant_types.authorization_code.status: false
+        grant_types.refresh_token.status: false
+    # The read tools: drupal/mcp's mcp:read tools, each exposed on
+    # /mcp as tool_api__<id> and requiring a token with mcp:read. Its
+    # entity_bundle_list is left out: it needs the bundle's admin permission,
+    # which a token bounded by mcp_agent never has, so it could only fail.
+    mcp_server_tool_bridge.mcp_tool_config.tool_belt_entity_type_list:
+      createIfNotExists:
+        id: tool_belt_entity_type_list
+        tool_id: 'tool_belt:entity_type_list'
+        status: true
+        third_party_settings:
+          mcp_server_oauth:
+            authentication_mode: required
+            scopes:
+              - 'mcp:read'
+    mcp_server_tool_bridge.mcp_tool_config.tool_belt_entity_bundle_field_definitions:
+      createIfNotExists:
+        id: tool_belt_entity_bundle_field_definitions
+        tool_id: 'tool_belt:entity_bundle_field_definitions'
+        status: true
+        third_party_settings:
+          mcp_server_oauth:
+            authentication_mode: required
+            scopes:
+              - 'mcp:read'
+    mcp_server_tool_bridge.mcp_tool_config.tool_belt_entity_field_value_definitions:
+      createIfNotExists:
+        id: tool_belt_entity_field_value_definitions
+        tool_id: 'tool_belt:entity_field_value_definitions'
+        status: true
+        third_party_settings:
+          mcp_server_oauth:
+            authentication_mode: required
+            scopes:
+              - 'mcp:read'
+    mcp_server_tool_bridge.mcp_tool_config.tool_belt_entity_list:
+      createIfNotExists:
+        id: tool_belt_entity_list
+        tool_id: 'tool_belt:entity_list'
+        status: true
+        third_party_settings:
+          mcp_server_oauth:
+            authentication_mode: required
+            scopes:
+              - 'mcp:read'
+    mcp_server_tool_bridge.mcp_tool_config.tool_belt_entity_load_by_property:
+      createIfNotExists:
+        id: tool_belt_entity_load_by_property
+        tool_id: 'tool_belt:entity_load_by_property'
+        status: true
+        third_party_settings:
+          mcp_server_oauth:
+            authentication_mode: required
+            scopes:
+              - 'mcp:read'
+    mcp_server_tool_bridge.mcp_tool_config.tool_belt_entity_metadata:
+      createIfNotExists:
+        id: tool_belt_entity_metadata
+        tool_id: 'tool_belt:entity_metadata'
+        status: true
+        third_party_settings:
+          mcp_server_oauth:
+            authentication_mode: required
+            scopes:
+              - 'mcp:read'
+    mcp_server_tool_bridge.mcp_tool_config.tool_belt_entity_load_by_id:
+      createIfNotExists:
+        id: tool_belt_entity_load_by_id
+        tool_id: 'tool_belt:entity_load_by_id'
+        status: true
+        third_party_settings:
+          mcp_server_oauth:
+            authentication_mode: required
+            scopes:
+              - 'mcp:read'
+    mcp_server_tool_bridge.mcp_tool_config.tool_belt_entity_field_values:
+      createIfNotExists:
+        id: tool_belt_entity_field_values
+        tool_id: 'tool_belt:entity_field_values'
+        status: true
+        third_party_settings:
+          mcp_server_oauth:
+            authentication_mode: required
+            scopes:
+              - 'mcp:read'
+    # The draft-writing tools, each requiring mcp:write. Create:
+    # entity_stub -> field_set_value -> entity_save. Edit: entity_load_by_id ->
+    # entity_revision_add -> field_set_value -> entity_save. Not exposed:
+    # entity_delete, entity_create and entity_update (one-shot writes that skip
+    # the stub and revision steps) and mcp_publish_content.
+    mcp_server_tool_bridge.mcp_tool_config.tool_belt_entity_stub:
+      createIfNotExists:
+        id: tool_belt_entity_stub
+        tool_id: 'tool_belt:entity_stub'
+        status: true
+        third_party_settings:
+          mcp_server_oauth:
+            authentication_mode: required
+            scopes:
+              - 'mcp:write'
+    mcp_server_tool_bridge.mcp_tool_config.tool_belt_entity_revision_add:
+      createIfNotExists:
+        id: tool_belt_entity_revision_add
+        tool_id: 'tool_belt:entity_revision_add'
+        status: true
+        third_party_settings:
+          mcp_server_oauth:
+            authentication_mode: required
+            scopes:
+              - 'mcp:write'
+    mcp_server_tool_bridge.mcp_tool_config.tool_belt_field_set_value:
+      createIfNotExists:
+        id: tool_belt_field_set_value
+        tool_id: 'tool_belt:field_set_value'
+        status: true
+        third_party_settings:
+          mcp_server_oauth:
+            authentication_mode: required
+            scopes:
+              - 'mcp:write'
+    mcp_server_tool_bridge.mcp_tool_config.tool_belt_entity_save:
+      createIfNotExists:
+        id: tool_belt_entity_save
+        tool_id: 'tool_belt:entity_save'
+        status: true
+        third_party_settings:
+          mcp_server_oauth:
+            authentication_mode: required
+            scopes:
+              - 'mcp:write'
