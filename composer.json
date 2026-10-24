@@ -2,6 +2,7 @@
     "name": "drupal/varbase_ai_mcp_server_base",
     "description": "Varbase AI MCP Server: an MCP server for external assistants (Claude.ai and similar) with OAuth 2.1 and a read-only starter tool set. Experimental. Opt-in: never applied by default.",
     "type": "drupal-recipe",
+    "version": "1.0.0-alpha1",
     "keywords": [
         "recipe",
         "Varbase recipes",

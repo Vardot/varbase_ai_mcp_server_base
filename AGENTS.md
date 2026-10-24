@@ -20,6 +20,7 @@ GitHub repository is a mirror and takes no issues or pull requests.
 - CI must be green before merging: `.gitlab-ci.yml` on git.drupalcode.org validates `composer.json` and lints
   every YAML file.
 - No PHP in the repository at all: no `.php`, `.module`, `.install` or `.inc` file.
+- All configuration lives in `recipe.yml` and the recipe's own `config/`, never in `config/install` or `config/optional`.
 - Add an entry under `## [Unreleased]` in `CHANGELOG.md`.
 - CI must be green before merging: it applies the recipe twice on a real Varbase 11 site, runs the no-key recipe check,
   checks the discovery documents and the 401 on `/mcp`, then runs the functional tests.
