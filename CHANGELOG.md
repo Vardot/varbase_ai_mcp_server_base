@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Move the documentation to docs.varbase.vardot.com ([#3633032](https://www.drupal.org/i/3633032)).
+
 ## [1.0.0-alpha1] - 2026-10-24
 ### Added
 - Initialize Varbase AI MCP Server Base recipe ([#3632429](https://www.drupal.org/i/3632429)).

@@ -27,7 +27,7 @@ install:
   # RFC 7591 dynamic client registration. A hard dependency of
   # mcp_server_oauth, and how Claude.ai and other interactive clients register
   # themselves. Listed so the open /oauth/register endpoint is never a
-  # surprise (see README and docs/decisions/0001).
+  # surprise (see the documentation).
   - simple_oauth_client_registration
   # Tool API: the plugin type every exposed tool is.
   - tool

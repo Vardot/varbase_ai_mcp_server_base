@@ -9,9 +9,8 @@ GitHub repository is a mirror and takes no issues or pull requests.
 
 ## Before you start
 
+- **Documentation** lives on the Varbase docs site: [docs.varbase.vardot.com](https://docs.varbase.vardot.com/developers/understanding-varbase/varbase-ai-recipes/varbase-ai-mcp-server-base). Keep `README.md` short and link there; add no `docs/` folder.
 - **`CHANGELOG.md`**: what changed in each release, newest first, and where it was checked.
-- **`README.md`**: what the recipe adds, what it deliberately leaves out, the runtime steps and the known issues.
-- **`docs/decisions/0001-oauth-2-1-authentication.md`**: why OAuth 2.1 and not a shared login.
 
 ## When you make a change
 
