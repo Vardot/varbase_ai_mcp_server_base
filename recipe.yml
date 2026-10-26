@@ -29,6 +29,8 @@ install:
   # themselves. Listed so the open /oauth/register endpoint is never a
   # surprise (see the documentation).
   - simple_oauth_client_registration
+  # RFC 8252 native apps; the OAuth 2.1 dashboard links to its settings.
+  - simple_oauth_native_apps
   # Tool API: the plugin type every exposed tool is.
   - tool
   # The MCP endpoint on /mcp (JSON-RPC over streamable HTTP).

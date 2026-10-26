@@ -23,12 +23,24 @@ Feature: Varbase AI Recipe - AI MCP Server Base - Read tools, draft tools and th
 
   Scenario: Check the MCP agent role creates drafts and cannot publish
      When I go to "/admin/people/permissions/mcp_agent"
-     Then the Drupal checkbox "edit-mcp-agent-create-blog-content" is checked
-      And the Drupal checkbox "edit-mcp-agent-use-varbase-editorial-workflow-transition-create-new-draft" is checked
-      And the Drupal checkbox "edit-mcp-agent-use-varbase-editorial-workflow-transition-publish" is unchecked
+     Then the checkbox labeled "MCP agent: Blog post: Create new content" should be checked
+      And the checkbox labeled "MCP agent: Editorial workflow: Use Create new draft transition." should be checked
+      And the checkbox labeled "MCP agent: Editorial workflow: Use Publish transition." should be unchecked
 
-  @wip
-  Scenario: Check the OAuth 2.1 dashboard and the PKCE settings open
-     When I go to "/admin/config/people/simple_oauth/oauth-21/pkce"
+  Scenario: Check the OAuth 2.1 dashboard opens
+     When I go to "/admin/config/people/simple_oauth/oauth-21"
      Then the response status code should be 200
-      And I should see "PKCE"
+      And I should see "Compliance"
+      And I should see "Native Apps"
+
+  Scenario Outline: Check the OAuth 2.1 "<settings>" page opens
+     When I go to "<path>"
+     Then the response status code should be 200
+      And I should see "<settings> Settings"
+
+    Examples:
+      | settings            | path                                                             |
+      | PKCE                | /admin/config/people/simple_oauth/oauth-21/pkce                  |
+      | Server Metadata     | /admin/config/people/simple_oauth/oauth-21/server-metadata       |
+      | Client Registration | /admin/config/services/simple-oauth/oauth-21/client-registration |
+      | Native Apps         | /admin/config/people/simple_oauth/oauth-21/native-apps           |
