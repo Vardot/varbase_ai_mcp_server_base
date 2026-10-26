@@ -5,9 +5,10 @@ Varbase 11 site with this recipe applied.
 
 | Feature | Covers |
 | --- | --- |
-| `01-01-ai-mcp-server-base-endpoint.feature` | /mcp asks for OAuth, the resource offers mcp:read and mcp:write and no publish scope, the authorization server metadata |
-| `01-02-ai-mcp-server-base-setup.feature` | The read and draft tools, the scopes, and the MCP agent role that drafts and cannot publish |
-| `01-03-ai-mcp-server-base-access.feature` | Only the webmaster changes what MCP exposes |
+| `01-01-ai-mcp-server-base-endpoint.feature` | The MCP endpoint asks an unknown client to sign in; its OAuth 2.1 discovery offers read and draft scopes and no publish scope |
+| `01-02-ai-mcp-server-base-setup.feature` | Publishing stays a human action: the scopes say so and the MCP agent role drafts but cannot publish; the OAuth 2.1 dashboard and its settings pages open |
+| `01-03-ai-mcp-server-base-access.feature` | Editorial roles and visitors cannot change what MCP exposes |
+| `01-04-ai-mcp-server-base-accessibility.feature` | The MCP tools page gives every field a label and every link a name |
 
 ## Run it
 
@@ -22,10 +23,5 @@ The site needs the webmaster (`webmaster`) and one user per role, named after th
 
 ## AI provider
 
-The suite needs no AI provider and no key: it checks the MCP endpoint and its OAuth discovery documents with
-plain HTTP requests, and the tools, scopes and role in the admin pages. Signing keys and OAuth clients are not
-created, so no token is issued here.
-
-The scenario tagged `@wip` opens the Simple OAuth 2.1 dashboard pages. They answer HTTP 500 today
-(`Route "simple_oauth_native_apps.settings" does not exist`), because the dashboard links to a submodule the
-recipe does not install.
+CI applies Drupal CMS AI before the recipe. It sets up an amazee.ai trial as the default provider, so no key
+is needed. The suite makes no AI calls of its own: MCP clients bring their own model.

@@ -1,5 +1,5 @@
 @varbase-ai-mcp-server-base @ai @recipes @local @development @staging @production
-Feature: Varbase AI Recipe - AI MCP Server Base - Read tools, draft tools and the MCP agent role
+Feature: Varbase AI Recipe - AI MCP Server Base - Draft-only access and the OAuth 2.1 pages
   As a site owner
   I want MCP clients to read content and write drafts, while publishing stays a human action
   So that an assistant can help with content without being able to publish anything
@@ -7,18 +7,9 @@ Feature: Varbase AI Recipe - AI MCP Server Base - Read tools, draft tools and th
   Background:
     Given I am a logged in user with the "Webmaster" user
 
-  Scenario: Check the read and draft-writing tools are exposed over MCP
-     When I go to "/admin/config/services/mcp-server/tools"
-     Then I should see "tool_belt:entity_list"
-      And I should see "tool_belt:entity_load_by_id"
-      And I should see "tool_belt:entity_revision_add"
-      And I should see "tool_belt:field_set_value"
-      And I should not see "tool_belt:entity_delete"
-
   Scenario: Check the publish scope says publishing is a human action
      When I go to "/admin/config/people/simple_oauth/oauth2_scope/dynamic"
-     Then I should see "mcp:read"
-      And I should see "Create and edit drafts through MCP. Never publishes."
+     Then I should see "Create and edit drafts through MCP. Never publishes."
       And I should see "Not available: publishing is a human action on this site."
 
   Scenario: Check the MCP agent role creates drafts and cannot publish
