@@ -17,7 +17,7 @@ install:
   - consumers
   # The OAuth 2 server: tokens, scopes, the consent screen.
   - simple_oauth
-  # OAuth 2.1 compliance dashboard; drupal/mcp's status checks expect it.
+  # OAuth 2.1 compliance dashboard.
   - simple_oauth_21
   # RFC 8414 / RFC 9728 discovery documents under /.well-known/, which MCP
   # clients read to find the authorization and token endpoints.
@@ -45,13 +45,6 @@ install:
   - tool_belt
   - tool_belt_entity
   - tool_belt_content
-  # The drupal/mcp umbrella module, installed for what it enforces, not for
-  # its setup: per-tool scope enforcement on every tools/call (mcp_server_oauth
-  # alone does not match Tool Bridge tool names), forced PKCE on dynamically
-  # registered public clients, the RFC 9728 /mcp resource metadata route, the
-  # publish guard and drush mcp:status. Its install-time setup does not run
-  # during a recipe apply, so it creates no client and exposes no tool.
-  - mcp
 config:
   # Re-applying must be safe: create what is missing and leave the rest.
   strict: false
@@ -145,9 +138,7 @@ config:
         granularity_id: role
         granularity_configuration:
           role: mcp_agent
-    # Publishing stays a human action in Drupal. drupal/mcp's status check
-    # expects the scope to exist; every grant stays disabled, so no token can
-    # carry it, and setProperties keeps it that way on re-apply.
+    # Publishing stays a human action: every grant stays disabled, so no token can carry this scope.
     simple_oauth.oauth2_scope.mcp_publish:
       createIfNotExists:
         id: mcp_publish
@@ -169,7 +160,7 @@ config:
         grant_types.client_credentials.status: false
         grant_types.authorization_code.status: false
         grant_types.refresh_token.status: false
-    # The read tools: drupal/mcp's mcp:read tools, each exposed on
+    # The read tools: Tool Belt's mcp:read tools, each exposed on
     # /mcp as tool_api__<id> and requiring a token with mcp:read. Its
     # entity_bundle_list is left out: it needs the bundle's admin permission,
     # which a token bounded by mcp_agent never has, so it could only fail.

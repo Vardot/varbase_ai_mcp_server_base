@@ -29,7 +29,6 @@ GitHub repository is a mirror and takes no issues or pull requests.
   grant `mcp_agent` a publish, archive, review, delete, bypass or admin permission without an issue that decides it.
   The CI check fails on any tool or permission outside the allowed lists.
 - Never put signing keys, client secrets or tokens in config, `recipe.yml`, tests, CI or docs. They are runtime state.
-- Never apply `drupal/mcp`'s `agent_ready` recipe or call its setup from here: both add write and publish.
 - No client or place names anywhere in the repository.
 - Never bump the version or tag a release without explicit maintainer approval. Tags are three-segment (`1.0.0`)
   and are never moved once pushed.

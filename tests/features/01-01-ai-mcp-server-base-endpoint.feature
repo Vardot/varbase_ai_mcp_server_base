@@ -11,12 +11,13 @@ Feature: Varbase AI Recipe - AI MCP Server Base - The MCP endpoint and its OAuth
      When I send a GET request to "mcp"
      Then the API response code should be 401
       And the API response should contain "Authentication required"
-      And the response header "WWW-Authenticate" should contain "resource_metadata"
+      And the response header "WWW-Authenticate" should contain "Bearer realm="
 
   Scenario: Check the MCP resource offers read and draft scopes, and no publish scope
-     When I send a GET request to ".well-known/oauth-protected-resource/mcp"
+     When I send a GET request to ".well-known/oauth-protected-resource"
      Then the API response code should be 200
       And the response should be valid JSON
+      And the JSON response should have property "authorization_servers"
       And the API response should contain "mcp:read"
       And the API response should contain "mcp:write"
       And the API response should not contain "mcp:publish"
